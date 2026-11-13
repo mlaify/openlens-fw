@@ -1,1 +1,3 @@
-This wiki is published from the [`wiki/` folder](https://github.com/mlaify/openlens-fw/tree/main/wiki) of the repository. Edit the pages there through a pull request; changes made here are overwritten.
+The openlens-fw documentation is at [docs.mlaify.io/openlens-fw](https://docs.mlaify.io/openlens-fw/). Its source is the
+content/openlens-fw folder of [mlaify/docs](https://github.com/mlaify/docs). This wiki only
+points there; it is published from the repository's wiki folder.
