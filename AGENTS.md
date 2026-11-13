@@ -69,8 +69,10 @@ copy of the assistant's memory are kept outside the repository, in the owner's n
   - If the sandbox or a classifier blocks something, stop and hand the command to the owner.
 
 ## Workflow
-The repository lives on **GitHub**: private `mlaify/openlens-fw` (renamed from
-`mlaify/cam-firmware-dev`, 2026-11-12); the owner's other remote is a mirror. Open work is tracked as **GitHub issues** (index in RESUME.md §8).
+The repository lives on **GitHub** (2026-11-13): the public `mlaify/openlens-fw`, and the owner's
+private development copy `mlaify/openlens-fw-dev` (renamed from `mlaify/cam-firmware-dev`), whose
+histories are separate; work on whichever the owner names. The user documentation is at
+docs.mlaify.io/openlens-fw, source `content/openlens-fw/` in `mlaify/docs`. Open work is tracked as **GitHub issues** (index in RESUME.md §8).
 Reference the issue in commits/PRs (`Fixes #N` when done).
 
 Branch **in a worktree** (`.claude/worktrees/<branch>`; the main checkout is the owner's working
@@ -87,8 +89,9 @@ merge-without-review). Details: `docs/RESUME.md` §10.
   host test of camtls needs its `build/mbedtls-src`).
 - Write a dated log entry in the PR description (the owner keeps the DEVLOG outside the repo),
   and update the READMEs. A change users see (a
-  setting, a page, a port, a build step) also updates the wiki's source in `wiki/` (no owner
-  addresses, keys or vendor weaknesses there; the owner publishes it).
+  setting, a page, a port, a build step) also needs a PR to the user docs in `mlaify/docs`
+  (`content/openlens-fw/`; no owner addresses, keys or vendor weaknesses there; the owner merges
+  and approves the deploy). `wiki/` only holds pages that point to the docs site.
 - Put an SPDX MIT header on any new file.
 - Bring the branch up to date with main.
 - For PRs that build on one another, tell the owner the merge order; after each squash, rebase

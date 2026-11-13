@@ -140,7 +140,7 @@ elif [ "$BENCH" = 1 ]; then
 	echo "WARNING: no update keys: this bench image's camupdate will refuse every package"
 else
 	echo "ERROR: no update keys. Put your own signing public keys in rootfs/update-keys.local"
-	echo "       (one ssh-ed25519 or sk-ssh-ed25519@openssh.com line each; wiki: Signing-and-update-keys)."
+	echo "       (one ssh-ed25519 or sk-ssh-ed25519@openssh.com line each; https://docs.mlaify.io/openlens-fw/signing-and-update-keys/)."
 	echo "       An image without them can't be updated over the network."
 	exit 1
 fi

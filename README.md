@@ -9,8 +9,10 @@ under their own terms (`THIRD-PARTY-NOTICES.md`).
 openlens-fw is not affiliated with or endorsed by Anpviz, Anjoy or SigmaStar. "Anpviz" names the
 hardware it runs on.
 
-**User documentation:** the [wiki](https://github.com/mlaify/openlens-fw/wiki) (source in
-`wiki/`, published with `scripts/publish-wiki.sh`). Security reports: `SECURITY.md`.
+**User documentation:** [docs.mlaify.io/openlens-fw](https://docs.mlaify.io/openlens-fw/) (source
+in [mlaify/docs](https://github.com/mlaify/docs), `content/openlens-fw/`). Security reports:
+[`SECURITY.md`](SECURITY.md). Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md) and the
+[Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Target (confirmed on the owner's cameras; docs/BOARD.md)
 - SoC SigmaStar **Ifado** (`soc0/family` = IFADO, Cortex-A7, GICv2), board type MCA40E. Not
@@ -49,7 +51,8 @@ Details and the current release: `docs/RESUME.md` §2. What's next: `docs/RESUME
   See `src/README.md`.
 - `rootfs/` — the image's skeleton (inittab, rcS, the `*-run` scripts), applets, the update keys,
   the vendor-file list; `scripts/build-rootfs.sh` assembles it (`rootfs/README.md`).
-- `wiki/` — the user-facing wiki's source.
+- `wiki/` — the GitHub wiki's pages, which now only point to the docs site
+  (`scripts/publish-wiki.sh` publishes them).
 - `docs/PLAN.md` — the original build plan: platform facts, MTD map, U-Boot flow, reusable-blob
   inventory, phased checklist, **acceptance gates (§9)**, and the **SC4336P-IQ risk (§10, B-4)**.
   `docs/GATE3-CRITERIA.md` is the security acceptance.

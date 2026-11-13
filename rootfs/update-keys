@@ -6,4 +6,4 @@
 #
 # One line per key: `ssh-ed25519 AAAA... comment` or `sk-ssh-ed25519@openssh.com AAAA... comment`
 # (a FIDO2 key made with -O verify-required). Add a second key and keep it safe. How to make
-# them: the wiki page Signing-and-update-keys.
+# them: https://docs.mlaify.io/openlens-fw/signing-and-update-keys/

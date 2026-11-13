@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 # publish-wiki.sh: publish the repo's wiki/ folder to the GitHub wiki (a separate git repo,
-# mlaify/openlens-fw.wiki.git). The wiki/ folder is the source: pages go through PRs like any doc,
-# and this script mirrors them, so edits made on the wiki's web page are overwritten.
+# mlaify/openlens-fw.wiki.git). The user documentation moved to docs.mlaify.io/openlens-fw (source:
+# mlaify/docs, content/openlens-fw/) on 2026-11-13; wiki/ now holds pages that point there, so old
+# wiki links keep working. The wiki/ folder is the source of those pages: they go through PRs like
+# any doc, and this script mirrors them, so edits made on the wiki's web page are overwritten.
 # WIKI_REMOTE=<url> publishes somewhere else (a fork's or a mirror's wiki).
 # Owner's terminal, from an up-to-date main:
 #

@@ -440,8 +440,8 @@ The root console closes at that reboot, so `open` it again before every run.
 | `tools/` | `mi-probe`, `iq-dump`, `ae-watch`, `ghidra/` headless scripts (incl. `DisassembleAt.java`) |
 | `docs/` | this file, ROADMAP, BOARD, IFADO-*, STOCK-*, PLAN, PLAN-TLS, PLAN-DATA-LOCK, GATE3-CRITERIA |
 | `vendor-blobs/`, `scripts/scrub-uboot-env.py` | the stock binaries (tracked since 2026-11-12, licenses in `vendor-blobs/README.md`); the MAC scrubber for a BOOT image |
-| `wiki/`, `scripts/publish-wiki.sh` | the user-facing wiki's source (the GitHub wiki; reviewed in PRs); the owner publishes it with the script |
-| `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | how to report vulnerabilities privately; the bug report template |
+| `wiki/`, `scripts/publish-wiki.sh` | the GitHub wiki's pages, which only point to the user docs at docs.mlaify.io/openlens-fw (source: `mlaify/docs`, `content/openlens-fw/`, since 2026-11-13); the owner publishes them with the script |
+| `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/` | how to report vulnerabilities privately (GitHub or security@mlaify.io); how to contribute; the code of conduct; the issue templates |
 
 ## 10. Environment and git workflow
 - **Mac:** Apple Silicon.
@@ -455,10 +455,10 @@ The root console closes at that reboot, so `open` it again before every run.
   - Use `$TMPDIR` (not `/tmp`). zsh `noclobber` blocks `>` onto existing files: use `>|` or
     Python.
 - **Git:**
-  - **Forge (since 2026-11-12):** GitHub, private `mlaify/openlens-fw` (renamed from
-    `mlaify/cam-firmware-dev`), for code, PRs, issues and the wiki. The owner's other remote is
-    a mirror. A public copy is planned as a
-    fresh single-commit repository, so this history stays private.
+  - **Forge (since 2026-11-13):** GitHub. The public `mlaify/openlens-fw` started as a fresh
+    single-commit repository (main at #199); the owner's private development copy is
+    `mlaify/openlens-fw-dev` (renamed from `mlaify/cam-firmware-dev`), which keeps the history.
+    The two histories are separate; work on whichever the owner names.
   - **Signing:** commits are signed with `claude-git-sign`; the owner touches the YubiKey on
     commit, push and fetch.
   - **Single commands only:** `claude-git-sign` and `claude-gh` must be bare commands — no
