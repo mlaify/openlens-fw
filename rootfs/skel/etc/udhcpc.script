@@ -1,0 +1,20 @@
+#!/bin/sh
+# udhcpc event script (BusyBox simple.script, trimmed): address, default route, DNS. The DNS
+# servers are net.dns's when it is set (net-up writes them to /run/net-dns, #80), else the lease's.
+case "$1" in
+deconfig)
+	ifconfig "$interface" 0.0.0.0
+	;;
+bound|renew)
+	ifconfig "$interface" "$ip" ${subnet:+netmask $subnet} ${broadcast:+broadcast $broadcast}
+	if [ -n "$router" ]; then
+		while route del default gw 0.0.0.0 dev "$interface" 2>/dev/null; do :; done
+		for r in $router; do route add default gw "$r" dev "$interface"; done
+	fi
+	[ -s /run/net-dns ] && read -r dns < /run/net-dns
+	: > /tmp/resolv.conf
+	for d in $dns; do echo "nameserver $d" >> /tmp/resolv.conf; done
+	logger -t udhcpc "$interface $ip"
+	;;
+esac
+exit 0

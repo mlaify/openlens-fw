@@ -1,0 +1,38 @@
+# --- Full flash dumps / images: keep local & offline (large; may carry per-unit data) ---
+*.bin
+*.img
+*.sqfs
+*.squashfs
+dumps/
+golden/
+openipc/output/
+openipc/br-ext-*/
+
+# --- Vendor blobs ARE tracked (owner decision 2026-11-12; vendor-blobs/README.md). The dump rules
+# above would hide them, so re-include them here. The BOOT image is committed only after
+# scripts/scrub-uboot-env.py has replaced the camera's MAC.
+!vendor-blobs/**
+vendor-blobs/**/.claude/
+
+# --- The builder's own update keys (scripts/build-rootfs.sh reads this before rootfs/update-keys)
+rootfs/update-keys.local
+# --- The builder's camera subnet, CAM_NET=A.B.C.D/PREFIX (scripts/cam-net.sh)
+cam-net.local
+
+# --- build artifacts ---
+*.o
+*.ko.cmd
+build/
+out/
+# raw serial/bench logs: may contain device serial, MAC, credentials
+bench-logs/
+bench-conf/
+.DS_Store
+*.swp
+
+# Python bytecode
+__pycache__/
+*.pyc
+tools/mi-probe/mi-probe
+tools/mi-probe/mi-probe.sha256
+src/rtspd/test_rtspd

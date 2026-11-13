@@ -1,0 +1,30 @@
+# read-only: what a replacement rootfs on the stock kernel must provide
+cat /proc/filesystems
+cat /proc/mounts
+free
+ps
+cat /proc/net/protocols
+ls /proc/net
+ls /proc/sys/net/ipv6 2>&1
+ls /proc/net/ip_tables_names /proc/net/nf_conntrack 2>&1
+cat /linuxrc 2>&1 | head -60
+ls -la /etc/init.d
+cat /etc/init.d/rcS
+cat /etc/inittab 2>&1
+ls -la /config/modules /config/lib
+cat /config/modparam.json
+ls -la /lib/modules /lib/modules/* 2>&1
+ls -la /customer /customer/lib 2>&1 | head -60
+ls -la /config/iqfile /config/venc_fw /config/dla 2>&1
+ls -la /opt /opt/ch 2>&1 | head -40
+ls -la /usr/bin /usr/sbin /bin /sbin 2>&1 | head -120
+ls -la /dev | head -80
+cat /proc/devices
+cat /proc/misc
+cat /proc/cmdline
+busybox
+cat /proc/sys/kernel/modules_disabled 2>&1
+ls /sys/module
+cat /proc/sys/kernel/randomize_va_space
+cat /proc/sys/vm/overcommit_memory
+df

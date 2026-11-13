@@ -1,0 +1,1 @@
+This wiki is published from the [`wiki/` folder](https://github.com/mlaify/openlens-fw/tree/main/wiki) of the repository. Edit the pages there through a pull request; changes made here are overwritten.

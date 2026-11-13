@@ -1,0 +1,8 @@
+# flashrom region layout for the Anpviz IPC-D240W-S SPI-NOR (PUYA P25Q128, 16 MiB, 3.3V)
+# Offsets derived from U-Boot mtdparts: nor0:0x40000(BOOT),0x200000(kernel),0xCB0000(rootfs),0x100000(DATA)
+# Use with:  flashrom -p ch341a_spi -l flash-layout.txt -i <region> -w <image>
+000000:03ffff BOOT
+040000:23ffff kernel
+240000:eeffff rootfs
+ef0000:feffff DATA
+ff0000:ffffff RESERVED

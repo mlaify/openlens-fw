@@ -1,0 +1,9 @@
+# Firmware update signing keys (#104): the public keys a camera running this image trusts.
+#
+# This file ships empty on purpose. Don't put your keys here: put them in rootfs/update-keys.local
+# (gitignored), which scripts/build-rootfs.sh reads instead of this file. A release build stops
+# when neither file has a key, because an image without one can never be updated over the network.
+#
+# One line per key: `ssh-ed25519 AAAA... comment` or `sk-ssh-ed25519@openssh.com AAAA... comment`
+# (a FIDO2 key made with -O verify-required). Add a second key and keep it safe. How to make
+# them: the wiki page Signing-and-update-keys.

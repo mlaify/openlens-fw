@@ -1,0 +1,6 @@
+root:x:0:
+rtspd:x:100:
+ntpc:x:101:
+camhttpd:x:102:
+camtls:x:103:
+camctl:x:110:rtspd,camhttpd

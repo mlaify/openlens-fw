@@ -1,0 +1,8 @@
+# read-only: the stock firmware's audio-in state (audio work, 2026-10-23): is the MI AI device
+# open, at what sample rate / channels / bit width, and does media_server hold it. Nothing changes.
+ls -la /dev/mi_ai* /dev/mi_ao* 2>&1
+cat /proc/mi_modules/mi_ai/mi_ai0 2>&1 | head -80
+cat /proc/mi_modules/mi_ao/mi_ao0 2>&1 | head -40
+cat /proc/asound/cards 2>&1; ls /dev/snd 2>&1
+grep -iE 'aud|mic|amic|dmic|i2s|codec' /proc/interrupts /proc/devices 2>&1 | head -20
+dmesg | grep -iE 'audio|amic|dmic|i2s|codec|mi_ai|mi_ao' | head -30

@@ -1,0 +1,1 @@
+/mnt/hgfs/trunk/_smw/..//default_config/_SMW/cfg_i6c/sc4336p_a50

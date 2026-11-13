@@ -1,0 +1,5 @@
+# read-only: how many connections Surveillance Station (NAS 198.51.100.36: put your NAS's address) keeps to the STOCK firmware,
+# to size camhttpd's connection limits (owner 2026-10-23). 15 samples, 1 s apart (the probe runner waits 20 s per line); nothing is changed.
+cat /tmp/product_type.txt; echo; netstat -tn 2>/dev/null | head -2
+i=0; while [ $i -lt 15 ]; do echo "t=$i port80=`netstat -tn 2>/dev/null | grep '198.51.100.36' | grep -c ':80 '` port554=`netstat -tn 2>/dev/null | grep '198.51.100.36' | grep -c ':554 '` all=`netstat -tn 2>/dev/null | grep -c '198.51.100.36'`"; i=$((i+1)); sleep 1; done
+netstat -tn 2>/dev/null | grep '198.51.100.36'

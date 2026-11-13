@@ -1,0 +1,33 @@
+{
+    "E_MI_MODULE_ID_SYS" :
+    {
+        "cmdQBufSize" : 300,
+        "bEnableCmdqReset" : true,
+        "g_bEnableMiuPanic" : false,
+        "g_bEnableMiuProtect" : true
+    },
+    "E_MI_MODULE_ID_FB" :
+    {
+        "default_reserved_mem_name": "fb"
+    },
+    "E_MI_MODULE_ID_SCL" :
+    {
+        "u16RingLineCntArray":[128,128]
+    },
+    "E_MI_MODULE_ID_VENC" :
+    {
+        "use_ring_ref" : 1,
+        "max_chn_num" : 8,
+        "s32PreloadChnFlag" : 0,
+        "u32Chn0PreloadBufSize" : 0,
+        "u32Chn1PreloadBufSize" : 0,
+        "u32Chn2PreloadBufSize" : 0,
+        "s32JpePreloadChnFlag" : 0,
+        "u32JpeChn0PreloadBufSize" : 0,
+        "u32JpeChn1PreloadBufSize" : 0,
+        "u32JpeChn2PreloadBufSize" : 0,
+        "ven_clock" : 0,
+        "jpe_clock" : 0,
+        "VenMiuPChn" : 0
+    }
+}

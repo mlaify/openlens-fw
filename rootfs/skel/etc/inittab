@@ -1,0 +1,12 @@
+# BusyBox init (#31). No getty login is possible while root has no password (/etc/shadow "*"),
+# which is the default and the only choice for a release image: access is SSH with keys (#76),
+# added when the camera is claimed (#128). A bench image built with a root hash
+# (build-rootfs.sh --bench) also gets a serial login on ttyS0.
+::sysinit:/etc/init.d/rcS
+::respawn:/usr/sbin/rtspd-run
+::respawn:/usr/sbin/camhttpd-run
+::respawn:/usr/sbin/camtls-run
+::respawn:/usr/sbin/ntpc-run
+::respawn:/usr/sbin/sshd-run
+ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
+::shutdown:/bin/umount -a -r

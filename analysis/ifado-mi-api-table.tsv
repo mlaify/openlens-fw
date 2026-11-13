@@ -1,0 +1,143 @@
+# Ifado MI calls used by stock media_server, by device; name = media_server log string if present,
+# else a GUESS from the OpenIPC I6C call with the same (dir,size) [=] or nearest nr [~]. Verify before use.
+module	nr	size	dir	request	name	name_source	i6c_same_nr	media_server_fn
+venc	0	88	1	0x40586900	MI_VENC_CreateChn	verified: VencBase::Init (wrapper FUN_0016b7d0 missed by device map)		0016b7d0
+sensor	0	4	1	0x40046900	MI_SNR_Enable	verified: Vif::Init	MI_SNR_Enable/4	0016aa2c
+sensor	1	4	1	0x40046901	MI_SNR_Disable	guess:~ same nr	MI_SNR_Disable/4	0016aaa0
+sensor	2	60	3	0xc03c6902	MI_SNR_GetPadInfo	verified: Vif::Init	MI_SNR_GetPadInfo/56	0016ab14
+sensor	3	80	3	0xc0506903	MI_SNR_GetPlaneInfo	verified: Vif::Init	MI_SNR_GetPlaneInfo/80	0016aba4
+sensor	4	8	3	0xc0086904	MI_SNR_GetFps	guess:~ same nr	MI_SNR_GetFps/8	0016ac40
+sensor	5	8	1	0x40086905	MI_SNR_SetFps	verified: Vif::Init	MI_SNR_SetFps/8	0016acd0
+sensor	8	8	3	0xc0086908	MI_SNR_QueryResCount	verified: SNR_InitUnInit	MI_SNR_QueryResCount/8	0016ad44
+sensor	9	60	3	0xc03c6909	MI_SNR_GetRes	verified: SNR_InitUnInit	MI_SNR_GetRes/60	0016add4
+sensor	11	8	1	0x4008690b	MI_SNR_SetRes	verified: Vif::Init	MI_SNR_SetRes/8	0016ae78
+sensor	12	8	1	0x4008690c	MI_SNR_SetOrien	guess:~ same nr	MI_SNR_SetOrien/8	0016aef0
+sensor	13	8	3	0xc008690d	MI_SNR_GetOrien	guess:~ same nr	MI_SNR_GetOrien/8	0016af70
+sensor	14	8	1	0x4008690e	MI_SNR_SetPlaneMode	verified: Vif::Init	MI_SNR_SetPlaneMode/8	0016b028
+vif	0	52	1	0x40346900	MI_VIF_CreateDevGroup	verified: ST_Vif_CreateDevGroup	MI_VIF_CreateDevGroup/32	0016dd3c
+vif	2	52	3	0xc0346902	MI_VIF_GetDevGroupAttr	guess:~ same nr	MI_VIF_GetDevGroupAttr/32	0016df4c
+vif	4	28	1	0x401c6904	MI_VIF_SetDevAttr	verified: ST_Vif_EnableDev	MI_VIF_GetDevAttr/24	0016dfd0
+vif	6	4	1	0x40046906	MI_VIF_EnableDev	verified: ST_Vif_EnableDev	MI_VIF_DisableDev/4	0016e050
+vif	8	24	3	0xc0186908	?		MI_VIF_SetOutputPortAttr/32	0016e118
+vif	9	32	1	0x40206909	MI_VIF_SetOutputPortAttr	verified: ST_Vif_SetOutputPortAttr	MI_VIF_GetOutputPortAttr/32	0016e1a8
+vif	10	32	3	0xc020690a	MI_VIF_GetOutputPortAttr	verified: Isp::Init	MI_VIF_EnableOutputPort/8	0016e234
+vif	11	8	1	0x4008690b	MI_VIF_EnableOutputPort	verified: ST_Vif_EnableOutputPort	MI_VIF_DisableOutputPort/8	0016e2c0
+vif	12	8	1	0x4008690c	?		MI_VIF_Query/36	0016e334
+isp	0	8	1	0x40086900	MI_ISP_CreateDevice	verified: Isp::Init	MI_ISP_CreateDevice/8	0016e620
+isp	2	88	1	0x40586902	MI_ISP_CreateChannel	verified: Isp::Init	MI_ISP_CreateChannel/88	0016e7fc
+isp	6	36	1	0x40246906	MI_ISP_SetChnParam	verified: Isp::Init	MI_ISP_SetChnParam/28	0016e954
+isp	7	36	3	0xc0246907	MI_ISP_GetChnParam	guess:~ same nr	MI_ISP_GetChnParam/28	0016ea00
+isp	9	8	1	0x40086909	MI_ISP_StartChannel	verified: Isp::Start	MI_ISP_StartChannel/8	0016ea80
+isp	10	8	1	0x4008690a	MI_ISP_StopChannel	guess:~ same nr	MI_ISP_StopChannel/8	0016eaf4
+isp	11	32	1	0x4020690b	MI_ISP_SetOutputPortParam	verified: Isp::Init	MI_ISP_SetOutputPortParam/32	0016eb68
+isp	12	32	3	0xc020690c	MI_ISP_GetOutputPortParam	guess:~ same nr	MI_ISP_GetOutputPortParam/32	0016ebf4
+isp	13	12	1	0x400c690d	MI_ISP_EnableOutputPort	verified: Isp::Start	MI_ISP_EnableOutputPort/12	0016ec78
+isp	14	12	1	0x400c690e	MI_ISP_DisableOutputPort	guess:~ same nr	MI_ISP_DisableOutputPort/12	0016ecf0
+isp	15	16	3	0xc010690f	MI_ISP_Alloc_IQDataBuf	guess:~ same nr	MI_ISP_Alloc_IQDataBuf/8	0016ed68
+isp	16	16	1	0x40106910	MI_ISP_Free_IQDataBuf	guess:~ same nr	MI_ISP_Free_IQDataBuf/8	0016ede0
+isp	17	32	1	0x40206911	MI_ISP_SetIQApiData	guess:~ same nr	MI_ISP_SetIQApiData/28	0016ee50
+isp	18	32	1	0x40206912	MI_ISP_GetIQApiData	guess:~ same nr	MI_ISP_GetIQApiData/28	0016eed8
+isp	21	12	1	0x400c6915	MI_ISP_SkipFrame	guess:~ same nr	MI_ISP_SkipFrame/12	0016ef60
+isp	23	20	1	0x40146917	MI_ISP_StartPortZoom	guess:= (dir,size)	MI_ISP_StartPortZoom/20	0016efd8
+isp	24	8	1	0x40086918	MI_ISP_StopPortZoom	guess:~ same nr	MI_ISP_StopPortZoom/8	0016f058
+isp	25	20	3	0xc0146919	MI_ISP_GetPortCurZoomAttr	guess:= (dir,size)	MI_ISP_GetPortCurZoomAttr/20	0016f0cc
+isp	35	20	3	0xc0146923	MI_ISP_GetPortCurZoomAttr	guess:= (dir,size)		0016e568
+isp	37	4	1	0x40046925	MI_ISP_DestoryDevice	guess:= (dir,size)		0016e620
+isp	39	12	1	0x400c6927	MI_ISP_EnableUserspace3A	media_server		0017b3c0
+isp	40	12	1	0x400c6928	MI_ISP_EnableUserspace3A	media_server		0017b3c0
+isp	41	12	1	0x400c6929	MI_ISP_EnableUserspace3A	media_server		0017b3c0
+isp	42	20	3	0xc014692a	MI_ISP_EnableUserspace3A	media_server		0017b3c0
+isp	43	20	3	0xc014692b	MI_ISP_EnableUserspace3A	media_server		0017b3c0
+isp	44	20	3	0xc014692c	MI_ISP_EnableUserspace3A	media_server		0017b3c0
+scl	0	8	1	0x40086900	MI_SCL_CreateDevice	verified: Scl::Init	MI_SCL_CreateDevice/8	0019d238
+scl	2	12	1	0x400c6902	MI_SCL_CreateChannel	verified: ST_SclCreateChn	MI_SCL_CreateChannel/12	0019d310
+scl	6	12	1	0x400c6906	MI_SCL_SetChnParam	verified: ST_SclCreateChn	MI_SCL_SetChnParam/12	0019d3f0
+scl	8	8	1	0x40086908	MI_SCL_StartChannel	verified: ST_SclCreateChn	MI_SCL_StartChannel/8	0019d468
+scl	10	36	1	0x4024690a	MI_SCL_SetOutputPortParam	verified: ST_SclCreateChn	MI_SCL_SetOutputPortParam/36	0019d538
+scl	11	36	3	0xc024690b	MI_SCL_GetOutputPortParam	guess:= (dir,size)	MI_SCL_GetOutputPortParam/36	0019d5d0
+scl	12	12	1	0x400c690c	MI_SCL_EnableOutputPort	verified: ST_SclCreateChn	MI_SCL_EnableOutputPort/12	0019d66c
+scl	13	12	1	0x400c690d	MI_SCL_DisableOutputPort	guess:~ same nr	MI_SCL_DisableOutputPort/12	0019d6d4
+venc	2	8	1	0x40086902	MI_VENC_DestroyChn	media_server	MI_VENC_CreateChn/84	0016bab4
+venc	4	8	1	0x40086904	MI_VENC_StartRecvPic	media_server	MI_VENC_ResetChn/8	0016bd3c
+venc	6	12	3	0xc00c6906	MI_VENC_StopRecvPic	media_server	MI_VENC_StartRecvPicEx/12	0016be00
+venc	7	48	3	0xc0306907	MI_VENC_Query	verified: ReadStream	MI_VENC_StopRecvPic/8	0016bf7c
+venc	8	88	1	0x40586908	MI_VENC_SetChnAttr	media_server	MI_VENC_Query/48	0016c054
+venc	9	88	3	0xc0586909	MI_VENC_GetChnAttr	media_server	MI_VENC_SetChnAttr/84	0016c124
+venc	10	96	3	0xc060690a	MI_VENC_GetStream (core ioctl inside complex wrapper)	verified: GetStream wrapper	MI_VENC_GetChnAttr/84	0016c1f4
+venc	11	88	1	0x4058690b	MI_VENC_GetStream	media_server	MI_VENC_GetStream/84	0016c1f4
+venc	13	12	1	0x400c690d	MI_VENC_SetMaxStreamCnt	verified: VencBase::Init	MI_VENC_InsertUserData/16	0016d0c4
+venc	15	12	1	0x400c690f	MI_VENC_RequestIdr	media_server	MI_VENC_GetMaxStreamCnt/12	0016d198
+venc	16	16	3	0xc0106910	MI_VENC_GetFd	media_server	MI_VENC_RequestIdr/12	0016d2cc
+venc	17	8	1	0x40086911	MI_VENC_DestroyDev	media_server	MI_VENC_EnableIdr/12	0016b634
+venc	18	36	1	0x40246912	MI_VENC_SetRoiCfg	media_server		0016d4d8
+venc	40	144	1	0x40906928	MI_VENC_SetJpegParam	media_server	MI_VENC_SetH265SliceSplit/16	0016d5b4
+venc	41	144	3	0xc0906929	MI_VENC_GetJpegParam	media_server	MI_VENC_GetH265SliceSplit/16	0016d684
+venc	42	68	1	0x4044692a	MI_VENC_SetRcParam	media_server		0016d754
+venc	43	68	3	0xc044692b	MI_VENC_GetRcParam	media_server		0016d830
+venc	44	20	1	0x4014692c	MI_VENC_SetRefParam	verified: H265 attr builder		0016d90c
+venc	45	20	3	0xc014692d	MI_VENC_GetRefParam	verified: H265 attr builder		0016d9dc
+venc	54	16	3	0xc0106936	GetStream helper: output-buf query (16B)	wrapper-internal	MI_VENC_SetRcParam/64	0016c1f4
+venc	55	24	3	0xc0186937	GetStream helper: output-buf info (24B) then MI_SYS_Mmap	wrapper-internal	MI_VENC_GetRcParam/64	0016c1f4
+venc	57	80	3	0xc0506939	GetStream helper (80B)	wrapper-internal	MI_VENC_GetRefParam/20	0016c1f4
+venc	60	16	1	0x4010693c	MI_VENC_GetStream	media_server	MI_VENC_SetFrameLostStrategy/24	0016c1f4
+venc	61	12	1	0x400c693d	MI_VENC_SetInputSourceConfig	media_server	MI_VENC_GetFrameLostStrategy/24	0016dab0
+venc	69	16	1	0x40106945	MI_VENC_ReleaseStream	media_server	MI_VENC_GetStream/80	0016cd8c
+venc	76	12	1	0x400c694c	MI_VENC_CreateDev	verified: VencBase::Init	MI_VENC_ApplyCustomMap/16	0016b568
+venc	77	4	1	0x4004694d	MI_VENC_DestroyDev	media_server	MI_VENC_SetAdvCustRcAttr/12	0016b634
+rgn	0	1024	1	0x44006900	MI_RGN_Init	media_server	MI_RGN_Init/8	00169ee8
+rgn	1	0	0	0x00006901	MI_RGN_DeInit	guess:= (dir,size)	MI_RGN_DeInit/0	00169f9c
+rgn	2	24	1	0x40186902	MI_RGN_Create	media_server	MI_RGN_Create/20	00169fe0
+rgn	3	4	1	0x40046903	MI_RGN_Destroy	media_server	MI_RGN_Destroy/4	0016a104
+rgn	6	96	1	0x40606906	MI_RGN_AttachToChn	media_server	MI_RGN_AttachToChn/48	0016a1bc
+rgn	7	24	1	0x40186907	MI_RGN_DetachFromChn	media_server	MI_RGN_DetachFromChn/20	0016a344
+rgn	8	96	1	0x40606908	MI_RGN_SetDisplayAttr	media_server	MI_RGN_SetDisplayAttr/48	0016a46c
+rgn	10	40	3	0xc028690a	MI_RGN_GetCanvasInfo	media_server	MI_RGN_GetCanvasInfo/40	0016a5f4
+rgn	11	12	3	0xc00c690b	MI_RGN_UpdateCanvas	media_server	MI_RGN_UpdateCanvas/4	0016a748
+rgn	12	4	1	0x4004690c	MI_RGN_UpdateCanvas	media_server		0016a748
+ipu	0	4	3	0xc0046900	?			000fc5c0
+ipu	1	4	3	0xc0046901	?			000fe808
+ipu	3	12	3	0xc00c6903	?			000fe53c
+ipu	4	8	3	0xc0086904	?			000fb7d0
+ipu	5	4	3	0xc0046905	?			000fbb04
+ipu	6	296	3	0xc1286906	?			000fc5c0
+ipu	7	4	3	0xc0046907	?			000fe808
+ipu	8	280	3	0xc1186908	?			000fbb04
+ipu	9	32	3	0xc0206909	?			000fe53c
+ipu	12	4	3	0xc004690c	?			000fbb04
+ipu	13	4	3	0xc004690d	?			000fc5c0
+ipu	15	24	3	0xc018690f	?			000fb8f4
+vdisp	0	0	0	0x00006900	?			0019d8fc
+vdisp	1	0	0	0x00006901	?			0019d940
+vdisp	2	4	1	0x40046902	?			0019d984
+vdisp	3	4	1	0x40046903	?			0019d9e8
+vdisp	4	40	1	0x40286904	?			0019da4c
+vdisp	6	28	1	0x401c6906	?			0019dac8
+vdisp	8	8	1	0x40086908	?			0019db40
+vdisp	9	8	1	0x40086909	?			0019dba8
+vdisp	10	4	1	0x4004690a	?			0019dc10
+vdisp	11	4	1	0x4004690b	?			0019dc74
+ai	0	24	1	0x40186900	?			0015d950
+ai	1	2	1	0x40026901	?			0015d9ec
+ai	2	40	1	0x40286902	MI_AI_AttachIf	media_server		0015da68
+ai	3	1	3	0xc0016903	?			0015cc4c
+ai	4	4	3	0xc0046904	?			0015ce68
+ai	5	24	3	0xc0186905	MI_AI_DUMP_ENABLE	media_server		0015cf18
+ai	6	4	1	0x40046906	MI_AI_EnableChnGroup	media_server		0015dbd0
+ai	7	4	1	0x40046907	MI_AI_DisableChnGroup	media_server		0015dee8
+ai	8	38	1	0x40266908	MI_AI_SetGain	media_server		0015f274
+ai	10	20	1	0x4014690a	MI_AI_SetMute	media_server		0015f4c4
+ai	11	20	3	0xc014690b	MI_AI_Read	media_server		0015e3c8
+ai	12	8	1	0x4008690c	MI_AI_SetIfGain	media_server		0015f6f4
+ai	16	12	3	0xc00c6910	MI_AI_DUMP_ENABLE	media_server		0015cf18
+ai	17	4	3	0xc0046911	MI_AI_Read	media_server		0015e3c8
+ao	0	1	3	0xc0016900	MI_AO_DUMP_ENABLE	media_server		0015faf8
+ao	1	28	3	0xc01c6901	MI_AO_DUMP_ENABLE	media_server		0015faf8
+ao	2	28	1	0x401c6902	MI_AO_Open	media_server		0015ff9c
+ao	3	2	1	0x40026903	MI_AO_Close	media_server		00160114
+ao	4	12	1	0x400c6904	MI_AO_AttachIf	media_server		001602b8
+ao	7	12	3	0xc00c6907	MI_AO_Write	media_server		001603b4
+ao	8	24	3	0xc0186908	?			0015fe10
+ao	9	8	1	0x40086909	MI_AO_Write	media_server		001603b4
+ao	14	12	1	0x400c690e	MI_AO_SetVolume	media_server		00160950
+ao	16	8	1	0x40086910	MI_AO_SetMute	media_server		00160a54
+ao	18	8	1	0x40086912	MI_AO_SetIfVolume	media_server		00160b50

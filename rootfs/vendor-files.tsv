@@ -1,0 +1,13 @@
+# Vendor files copied into the rootfs at assembly time from the owner's local dump of the stock
+# rootfs (never committed). source-in-dump <TAB> destination-in-rootfs <TAB> sha256 (or "link:<target>")
+config/modules/5.10/sstar_mi.ko	config/modules/5.10/sstar_mi.ko	88991301fe22167bb0d9e26f2d7a06fb550b217c957dabdc3236f72e12d1bfd9
+config/modules/5.10/mi_debug.ko	config/modules/5.10/mi_debug.ko	f2fcd44af5426496e68de9dcfda8a94306d3a70a068118e186fbc89dd8b3b52a
+opt/ch/cus_sc4336p_mipi_20251225.ko	config/modules/5.10/cus_sc4336p_mipi_20251225.ko	f8fa7185968d5a3c515287762ea572c4a90efacf2d5ae7fd3e37ef5716e4b2d3
+config/modparam.json	config/modparam.json	af8d00e276fbe63fa4273d49bdf37b35d0ce226f2936ffc20ea3ac8537ad246e
+config/iqfile/imx307_iqfile.bin	config/iqfile/imx307_iqfile.bin	7deadccb79a0abaeb38a12416c9c80eb9bec5989da80bcce2874e5833c81a0b2
+-	config/iqfile/iqfile0.bin	link:imx307_iqfile.bin
+-	config/iqfile/iqfile1.bin	link:imx307_iqfile.bin
+-	config/iqfile/iqfile2.bin	link:imx307_iqfile.bin
+-	config/iqfile/iqfile3.bin	link:imx307_iqfile.bin
+config/iqfile/fc105G1.00_SWLUT.txt	config/iqfile/fc105G1.00_SWLUT.txt	75ae7feeadb55d699f6da8f3126e9ef804105346cc7a2fa75aa673bd082f7883
+config/venc_fw/ven_para.cfg	config/venc_fw/ven_para.cfg	627c2084c4d55219353efa861ef563d9d1e96195b9248ced524239e2890b3a4d

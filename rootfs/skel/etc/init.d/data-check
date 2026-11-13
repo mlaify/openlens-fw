@@ -1,0 +1,22 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# data-check: rcS runs it once DATA (mtd3, jffs2) is mounted at /mnt/nand (#174,
+# docs/PLAN-DATA-LOCK.md Part 2). A claimed camera keeps /mnt/nand/cam/claimed, a file of its own
+# (camcfg claim writes it). If that marker is there but the users file is missing or has no admin,
+# jffs2 lost it: exit 1 with the reason in /run/data-failed, and rcS locks the camera instead of
+# letting it look new and claimable. A fresh or erased DATA (no marker) stays claimable. A claimed
+# camera without the marker (its first boot of this firmware) gets one.
+# Tests set CAM_STUB_PATH (put first on PATH), DATA_DIR and DATA_FAILED.
+PATH=${CAM_STUB_PATH:+$CAM_STUB_PATH:}/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+D=${DATA_DIR:-/mnt/nand/cam}
+F=${DATA_FAILED:-/run/data-failed}
+if [ -e "$D/claimed" ]; then
+	camcfg -d "$D" claimed 2>/dev/null && exit 0
+	echo "users: DATA mounted, but this claimed camera's users file is missing or has no admin" > "$F"
+	exit 1
+fi
+if camcfg -d "$D" claimed --mark 2>/dev/null; then
+	logger -t data-check "claimed camera without $D/claimed (first boot of this firmware): marker written"
+fi
+exit 0

@@ -1,0 +1,41 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# sshd-lock: SSH while the camera is locked (#178, docs/PLAN-DATA-LOCK.md Part 3); sshd-run runs it
+# when /run/data-failed exists. DATA's own keys aren't used (DATA failed; /mnt/nand is a tmpfs).
+# Root's authorized keys are the image's update keys instead (/etc/cam/update-keys: the keys that
+# sign this camera's firmware), copied to /run/lockssh with verify-required on the sk keys (their
+# PIN, as camupdate demands). Whoever holds an update key can already install any firmware, so
+# this adds no authority and no key to the image (#128). The host key is a throwaway one made here
+# in /run, so the client warns that it changed: expected in lock mode.
+# Tests set CAM_STUB_PATH (put first on PATH), UPDATE_KEYS and LOCK_DIR.
+PATH=${CAM_STUB_PATH:+$CAM_STUB_PATH:}/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+K=${UPDATE_KEYS:-/etc/cam/update-keys}
+L=${LOCK_DIR:-/run/lockssh}
+umask 077
+mkdir -p "$L" && chmod 700 "$L" || exit 1
+# the same lines build-rootfs.sh accepts into the image; anything else is dropped
+grep -E '^(ssh-ed25519|sk-ssh-ed25519@openssh\.com) [A-Za-z0-9+/=]+( .*)?$' "$K" 2>/dev/null |
+	sed 's/^sk-ssh-ed25519@openssh\.com /verify-required &/' > "$L/authorized_keys.tmp"
+if [ ! -s "$L/authorized_keys.tmp" ]; then
+	rm -f "$L/authorized_keys.tmp"
+	logger -t sshd "lock mode: no update keys in $K: no SSH (serial console or CH341A only)"
+	sleep 60
+	exit 1
+fi
+mv "$L/authorized_keys.tmp" "$L/authorized_keys"
+H=$L/dropbear_ed25519_host_key
+if [ ! -s "$H" ]; then
+	rm -f "$H"
+	if ! dropbearkey -t ed25519 -f "$H" > "$L/keygen.log" 2>&1; then
+		rm -f "$H"
+		logger -t sshd "lock mode: host key generation failed: $(tail -n 3 "$L/keygen.log" | tr '\n' ' ')"
+		sleep 10
+		exit 1
+	fi
+fi
+logger -t sshd "lock mode: SSH for the image's update keys only, with a throwaway host key"
+dropbearkey -y -f "$H" 2>/dev/null | grep -i fingerprint | logger -t sshd
+# -D: authorized_keys from $L, not root's ~/.ssh (which links to DATA)
+dropbear -F -E -p 22 -r "$H" -D "$L" 2>&1 | logger -t dropbear
+sleep 2

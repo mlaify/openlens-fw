@@ -1,0 +1,5 @@
+# Test fixture for src/camupdate/test.sh: the public keys whose holder signed sk-nano.hdr.sig
+# (resident ed25519-sk keys made with -O verify-required). No image trusts this file.
+sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAILn2R10M0peSBSmbfAL8UPeFeV5nRKuywZghFuoSS6H3AAAAEHNzaDpjYW0tZmlybXdhcmU= cam-firmware nano
+sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIFuJlCx77MwMArXuYm2P9vPLyupYv145XTD5NuucyGJxAAAAEHNzaDpjYW0tZmlybXdhcmU= cam-firmware nfc
+sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIJstZSkQ8ETNLQ0T6DCbbcHg/aZwovcl8ZllY1x2CeRSAAAAEHNzaDpjYW0tZmlybXdhcmU= cam-firmware sif

@@ -1,0 +1,6 @@
+# read-only: the IR-cut driver's day/night status word (#30). media_server reads 4 bytes from
+# /dev/irled: 1 = day, 2 = night (inverted on some product types). Compare with
+# /tmp/ircut_night_mode (present = stock is in night mode). Nothing is written to the device.
+# The vendor BusyBox has no hexdump/od, so: sed -n l (escapes) and cmp against 1 and 2.
+ls -la /tmp/ircut_night_mode 2>&1; cat /tmp/product_type.txt; echo
+dd if=/dev/irled bs=4 count=1 2>/dev/null > /tmp/irled.st; ls -l /tmp/irled.st; sed -n l /tmp/irled.st; printf '\001\000\000\000' > /tmp/irled.1; printf '\002\000\000\000' > /tmp/irled.2; cmp -s /tmp/irled.st /tmp/irled.1 && echo "status = 1 (day)"; cmp -s /tmp/irled.st /tmp/irled.2 && echo "status = 2 (night)"; md5sum /tmp/irled.st /tmp/irled.1 /tmp/irled.2 2>&1; rm -f /tmp/irled.st /tmp/irled.1 /tmp/irled.2

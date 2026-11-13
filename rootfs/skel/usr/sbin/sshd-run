@@ -1,0 +1,39 @@
+#!/bin/sh
+# Started (and restarted) by init (#76). SSH is public-key only (Dropbear built without password
+# auth): the keys are /mnt/nand/cam/ssh/authorized_keys (= /root/.ssh/authorized_keys). The image
+# ships none (#128): they come from /setup when the camera is claimed, or the web UI's SSH keys
+# page. Until the camera is claimed (camcfg claimed) and a key exists, no daemon: wait here,
+# checking every 5 s. The host key is made here on first start, per camera, so a slow entropy
+# pool can't hold up the boot.
+# own PATH: init gives one, but a shell (or the chroot test) may not include /usr/sbin
+# Lock mode (#178): when rcS's data-check found DATA failed, sshd-lock serves SSH with the image's
+# update keys instead (never DATA's keys).
+# Tests set CAM_STUB_PATH (put first on PATH) and DATA_FAILED.
+PATH=${CAM_STUB_PATH:+$CAM_STUB_PATH:}/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+[ -e "${DATA_FAILED:-/run/data-failed}" ] && exec sshd-lock
+D=/mnt/nand/cam/ssh
+K=$D/dropbear_ed25519_host_key
+said=
+until camcfg claimed 2>/dev/null && [ -s "$D/authorized_keys" ]; do
+	[ -n "$said" ] || logger -t sshd "not claimed yet, or no $D/authorized_keys: not starting"
+	said=1
+	sleep 5
+done
+if [ ! -s "$K" ]; then
+	logger -t sshd "first start: generating the ed25519 host key"
+	rm -f "$K.tmp"
+	if ! dropbearkey -t ed25519 -f "$K.tmp" > "$D/keygen.log" 2>&1 || ! mv "$K.tmp" "$K"; then
+		rm -f "$K.tmp"
+		logger -t sshd "host key generation failed: $(tail -n 3 "$D/keygen.log" | tr '\n' ' ')"
+		sleep 10
+		exit 1
+	fi
+	chmod 600 "$K"
+fi
+dropbearkey -y -f "$K" 2>/dev/null | grep -i fingerprint | logger -t sshd
+# Password auth and forwarding are compiled out (rootfs/dropbear/localoptions.h), and so are
+# their -s/-g/-j/-k flags: passing them makes dropbear exit (chroot run 2026-10-23 06:45).
+# -E: its log to stderr, into syslog like rtspd.
+/usr/sbin/dropbear -F -E -p 22 -r "$K" 2>&1 | logger -t dropbear
+sleep 2

@@ -1,0 +1,22 @@
+#!/bin/sh
+
+PATH_MODULE=/config/modules/5.10
+
+insert_ko_all()
+{
+	echo 4 > /proc/sys/kernel/printk
+	
+	insmod ${PATH_MODULE}/sstar_mi.ko common_init.g_ModParamPath=/config/modparam.json
+	
+	if [ -f "${PATH_MODULE}/mi_debug.ko" ]; then
+		insmod ${PATH_MODULE}/mi_debug.ko
+	fi
+	
+	echo 0 up /config/iqfile/fc105G1.00_SWLUT.txt /config/iqfile/fc105G1.00_SWLUT.txt > /proc/mi_modules/mi_scl/debug_hal/hvsp
+	
+	insmod /opt/ch/cus_sc4336p_mipi_20251225.ko chmap=5
+
+	mdev -s	
+}
+
+insert_ko_all

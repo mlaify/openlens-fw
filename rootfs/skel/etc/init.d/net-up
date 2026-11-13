@@ -1,0 +1,135 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# net-up: rcS runs it once DATA is mounted (#80): eth0's address, default route and DNS, and the
+# hostname, from cam.conf's net.* settings (camcfg net show; src/camcfg).
+#  - dhcp, the default (also in lock mode, or when the settings can't be read): udhcpc, as before.
+#    A net.dns replaces the lease's servers (udhcpc.script reads /run/net-dns).
+#  - static: arping -D first (no other host may answer for the address), then the address, the
+#    route, and up to 60 s for the gateway to answer ARP. If either check fails, this boot uses
+#    DHCP and keeps the settings.
+#  - A change waiting for confirmation (camcfg net set made DIR/net-pending): if it fails its
+#    check, the confirmed settings come back now (camcfg net revert) and apply instead. Otherwise
+#    "net-up wait" runs in the background: unless camcfg net confirm (the Network page, or SSH)
+#    removes net-pending within 10 minutes, it reverts and reboots.
+# /run/net-status (0644, nothing secret) says what happened: configured (dhcp, static, none),
+# mode (in use), state (ok, fallback, reverted), reason, pending (0|1).
+# Tests: CAM_STUB_PATH (first on PATH), DATA_DIR, DATA_FAILED, NET_STATUS, NET_DNS, NET_RESOLV,
+# NET_CONFIRM_S, NET_GW_S, NET_CARRIER, NET_WAIT_SPAWN (what starts "wait").
+PATH=${CAM_STUB_PATH:+$CAM_STUB_PATH:}/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+D=${DATA_DIR:-/mnt/nand/cam}
+F=${DATA_FAILED:-/run/data-failed}
+S=${NET_STATUS:-/run/net-status}
+N=${NET_DNS:-/run/net-dns}
+R=${NET_RESOLV:-/tmp/resolv.conf}
+WAIT=${NET_CONFIRM_S:-600}
+GW_WAIT=${NET_GW_S:-60}
+IF=eth0
+C=${NET_CARRIER:-/sys/class/net/$IF/carrier}
+
+if [ "$1" = wait ]; then
+	sleep "$WAIT"
+	camcfg -d "$D" net show 2>/dev/null | grep -qx 'pending=1' || exit 0
+	if camcfg -d "$D" net revert >/dev/null 2>&1; then
+		logger -t net "the network change wasn't confirmed within $((WAIT / 60)) minutes: reverted, rebooting"
+		reboot
+	else
+		logger -t net "the network change wasn't confirmed, and camcfg net revert failed"
+	fi
+	exit 0
+fi
+
+# camcfg net show's lines into mode, address, netmask, gateway, dns, hostname, pending. camcfg
+# checked every value: addresses, a hostname of a-z 0-9 -, dns's addresses with spaces between.
+read_settings() {
+	mode=dhcp address= netmask= gateway= dns= hostname= pending=0
+	if [ -e "$F" ]; then why=; return 1; fi                  # lock mode: rcS has said why
+	if ! out=$(camcfg -d "$D" net show 2>&1); then why="settings unreadable: $out"; return 1; fi
+	while IFS='=' read -r k v; do
+		case $k in mode|address|netmask|gateway|dns|hostname|pending) eval "$k=\$v" ;; esac
+	done <<EOF
+$out
+EOF
+	return 0
+}
+
+set_hostname() {
+	if [ -n "$hostname" ]; then hostname "$hostname"; else hostname -F /etc/hostname; fi
+}
+
+dhcp_up() {
+	if [ -n "$dns" ]; then
+		echo "$dns" > "$N.tmp" && chmod 644 "$N.tmp" && mv -f "$N.tmp" "$N"
+	else
+		rm -f "$N"
+	fi
+	ifconfig "$IF" up
+	udhcpc -i "$IF" -b -S -s /etc/udhcpc.script -x hostname:"$(hostname)"
+	eff=dhcp
+}
+
+static_up() {
+	ifconfig "$IF" 0.0.0.0 up
+	# the PHY needs a few seconds after "up": an address check sent before the link is up hears
+	# nothing and would pass. Up to 10 s for carrier (unreadable: don't wait).
+	i=0
+	while [ "$(cat "$C" 2>/dev/null)" = 0 ] && [ "$i" -lt 10 ]; do sleep 1; i=$((i + 1)); done
+	if ! arping -D -q -I "$IF" -c 2 -w 3 "$address"; then
+		why="another host answers for $address"
+		return 1
+	fi
+	if ! ifconfig "$IF" "$address" netmask "$netmask" up || ! route add default gw "$gateway" dev "$IF"; then
+		why="can't set $address/$netmask via $gateway"
+		ifconfig "$IF" 0.0.0.0
+		return 1
+	fi
+	if ! arping -q -f -I "$IF" -c "$GW_WAIT" -w "$GW_WAIT" "$gateway"; then
+		why="the gateway $gateway didn't answer within $GW_WAIT s"
+		ifconfig "$IF" 0.0.0.0
+		return 1
+	fi
+	rm -f "$N"
+	: > "$R"
+	for d in $dns; do echo "nameserver $d" >> "$R"; done
+	logger -t net "$IF $address netmask $netmask gateway $gateway (static)"
+	eff=static
+}
+
+apply() {
+	if [ "$mode" = static ]; then static_up; else dhcp_up; fi
+}
+
+state=ok reason= eff=dhcp conf=none
+if read_settings; then
+	conf=$mode
+	set_hostname
+	if ! apply; then
+		reason=$why
+		if [ "$pending" = 1 ] && camcfg -d "$D" net revert >/dev/null 2>&1 && read_settings; then
+			logger -t net "the changed network settings failed ($reason): back to the confirmed ones"
+			conf=$mode state=reverted
+			set_hostname
+			if ! apply; then
+				logger -t net "the confirmed static settings failed too ($why): DHCP for this boot"
+				reason="$reason; then $why"
+				dhcp_up
+			fi
+		else
+			logger -t net "static settings failed ($reason): DHCP for this boot"
+			state=fallback
+			dhcp_up
+		fi
+	fi
+else
+	[ -n "$why" ] && logger -t net "$why: DHCP"
+	reason=$why
+	dhcp_up
+fi
+{ echo "configured=$conf"; echo "mode=$eff"; echo "state=$state"; echo "reason=$reason"
+  echo "pending=$pending"; } > "$S.tmp" && chmod 644 "$S.tmp" && mv -f "$S.tmp" "$S" ||
+	logger -t net "can't write $S"
+if [ "$pending" = 1 ]; then
+	logger -t net "changed network settings in use: confirm within $((WAIT / 60)) minutes (Network page, or camcfg net confirm), or they revert"
+	${NET_WAIT_SPAWN:-"$0"} wait </dev/null >/dev/null 2>&1 &
+fi
+exit 0

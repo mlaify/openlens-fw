@@ -1,0 +1,13 @@
+# read-only: live MI pipeline state (ground truth for struct values) and IQ file presence
+ls -la /tmp/isp_day.bin /tmp/isp_night.bin /tmp/aiisp.bin 2>&1
+ls -la /tmp/oem /tmp/oem/app 2>&1 | head -40
+ls /tmp
+ls -R /proc/mi_modules 2>&1 | head -80
+cat /proc/mi_modules/mi_sys/mi_sys0 2>&1 | head -80
+cat /proc/mi_modules/mi_sensor/mi_sensor0 2>&1 | head -80
+cat /proc/mi_modules/mi_vif/mi_vif0 2>&1 | head -80
+cat /proc/mi_modules/mi_isp/mi_isp0 2>&1 | head -100
+cat /proc/mi_modules/mi_scl/mi_scl0 2>&1 | head -100
+cat /proc/mi_modules/mi_venc/mi_venc0 2>&1 | head -120
+cat /proc/mi_modules/mi_venc/mi_venc8 2>&1 | head -60
+dmesg | grep -iE 'iq|bin|isp|cus3a|3a ' | head -40

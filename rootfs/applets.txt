@@ -1,0 +1,6 @@
+# BusyBox applets linked in the rootfs (#31). Others stay reachable as "busybox <applet>"; none of
+# them is started unless rcS/inittab says so (no telnetd, httpd, ftpd, nc listeners).
+/bin: ash sh cat chmod chown cp date dd df dmesg echo false grep gunzip gzip hostname kill ln login ls mkdir mknod more mount mv netstat ping ps pwd rm rmdir sed sleep stat sync tar touch true umount uname usleep vi wc
+/sbin: arping getty halt ifconfig init insmod klogd logread lsmod mdev modprobe poweroff reboot rmmod route sysctl syslogd udhcpc watchdog
+/usr/bin: awk basename cut dirname du env find free head id killall logger md5sum nslookup pidof sha256sum sort tail tee test top tr uniq uptime wget which xargs [ [[
+/usr/sbin: chroot

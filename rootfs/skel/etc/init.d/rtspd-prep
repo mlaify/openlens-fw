@@ -1,0 +1,54 @@
+#!/bin/sh
+# rtspd-prep (Gate 3): what rtspd needs at boot to run as its own user (rtspd -U, see rtspd-run),
+# and what rtspd's control clients that aren't root need (group camctl). rcS runs it after the
+# kernel modules and before cam-config. For the bench test (rootfs/README.md) run it by hand:
+#   sh rtspd-prep [USER [GROUP]]     default rtspd camctl; names from /etc/passwd and /etc/group,
+#                                    or numbers (the running image's passwd may not have them)
+# Nothing becomes world-writable and no device node changes: rtspd opens every device (and
+# /dev/urandom) before it leaves root. What changes:
+#   /run/cam           USER:GROUP 2750. rtspd writes snapshot.jpg in it (0640; group GROUP through
+#                      the setgid bit, for camhttpd once it isn't root) and re-reads its Digest file
+#                      (camcfg, run as root, gives that file to the directory's owner, 0600)
+#   IR LED PWM         pwmchip4/pwm0 exported (rtspd did that at its first day/night decision),
+#                      its period, duty_cycle and enable attributes USER's
+#   speaker amplifier  GPIO 12 exported and an output, low = off (rtspd did that at the first
+#                      talk), its value attribute USER's
+# Without a USER (no such name): /run/cam stays root only, as before Gate 3, and rtspd -U can't
+# work; rtspd as root is unaffected either way.
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+say() { logger -t rtspd-prep "$*"; echo "rtspd-prep: $*" >&2; }
+# a name's id from FILE (busybox's chown may need NSS for names; numbers always work)
+id_of() { # id_of FILE NAME|NUMBER
+	case $2 in
+	*[!0-9]*) awk -F: -v n="$2" '$1 == n { print $3; exit }' "$1" ;;
+	*) echo "$2" ;;
+	esac
+}
+U=$(id_of /etc/passwd "${1:-rtspd}")
+G=$(id_of /etc/group "${2:-camctl}")
+mkdir -p /run/cam
+if [ -n "$U" ] && [ -n "$G" ] && [ "$U" != 0 ] && chown "$U:$G" /run/cam && chmod 2750 /run/cam; then
+	# a Digest file written before (the bench test: the running image's camcfg made it root's)
+	[ -f /run/cam/rtspd.htdigest ] && chown "$U" /run/cam/rtspd.htdigest
+else
+	say "/run/cam: no user ${1:-rtspd} or group ${2:-camctl}: root only"
+	chown 0:0 /run/cam
+	chmod 700 /run/cam
+	exit 1
+fi
+P=/sys/class/pwm/pwmchip4
+if [ -d $P ]; then
+	[ -d $P/pwm0 ] || echo 0 > $P/export
+	for a in period duty_cycle enable; do
+		chown "$U" $P/pwm0/$a || say "$P/pwm0/$a: chown failed (no IR LEDs once rtspd isn't root)"
+	done
+else
+	say "no $P: no IR LED control"
+fi
+GP=/sys/class/gpio
+if [ ! -d $GP/gpio12 ]; then
+	echo 12 > $GP/export && echo out > $GP/gpio12/direction
+fi
+chown "$U" $GP/gpio12/value || say "GPIO 12: chown failed (no speaker once rtspd isn't root)"
+exit 0

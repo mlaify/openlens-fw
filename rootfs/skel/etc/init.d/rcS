@@ -1,0 +1,117 @@
+#!/bin/sh
+# rcS: hardened userland for the Anpviz IPC-D240W-S (SigmaStar Ifado) on the stock 5.10 kernel
+# (#31). Replaces the vendor rcS + /opt/ch/loadko + procman: no vendor daemons, no telnet, the
+# only listener is rtspd (started by inittab). The stock kernel has no netfilter, so "only our
+# listeners" is the firewall.
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+# Mount options (Gate 3): nothing is ever executed from /dev, /run, /run/fw or DATA, so those are
+# noexec; /tmp stays exec (camupdate copies itself there and execs that copy) but is nosuid,nodev.
+mount -t tmpfs -o mode=0755,size=256k,nosuid,noexec mdev /dev   # stock: tmpfs /dev + mdev
+mkdir -p /dev/pts /dev/shm
+mount -t devpts devpts /dev/pts
+mount -t tmpfs -o mode=1777,size=4m,nosuid,nodev tmpfs /tmp
+mount -t tmpfs -o mode=0755,size=256k,nosuid,nodev,noexec tmpfs /run
+# Firmware uploads from the web UI (camhttpd, #104): a tmpfs of their own, user camhttpd's (0700):
+# with -Z its worker writes the upload there, and its root monitor opens it (O_NOFOLLOW) for
+# camupdate; camhttpd as root (no -Z) writes there too. Without a camhttpd user: root only, as
+# before. camhttpd takes at most 5 MiB; this cap backs it up, and a staged package never fills
+# /tmp, where camupdate copies itself to install. tmpfs uses RAM only for what it holds.
+mkdir -p /run/fw && mount -t tmpfs -o mode=0700,size=6m,nosuid,nodev,noexec tmpfs /run/fw
+# ids from /etc/passwd (busybox's chown may need NSS for names; numbers always work)
+FW_ID=$(awk -F: '$1 == "camhttpd" && $3 > 0 && $4 > 0 { print $3 ":" $4; exit }' /etc/passwd)
+if [ -z "$FW_ID" ] || ! chown "$FW_ID" /run/fw; then
+	echo "rcS: /run/fw: no camhttpd user: root only (camhttpd -Z can't stage uploads)" >&2   # no syslogd yet
+fi
+# HTTPS (docs/PLAN-TLS.md §B; camtls-run, off without tls.on): /run/camtls is camtls's (0755): it
+# makes "ready" there, camhttpd checks for it, and camtls-run (root) publishes the camera's CA
+# certificate and the certificate's check line in it (0644). /run/camhttpd holds the socket
+# camhttpd binds as root and camtls connects to: root:camtls 0750, so no other user reaches it.
+TLS_ID=$(awk -F: '$1 == "camtls" && $3 > 0 && $4 > 0 { print $3 ":" $4; exit }' /etc/passwd)
+mkdir -p /run/camtls /run/camhttpd && chmod 0755 /run/camtls && chmod 0750 /run/camhttpd
+if [ -z "$TLS_ID" ] || ! chown "$TLS_ID" /run/camtls || ! chown "0:${TLS_ID#*:}" /run/camhttpd; then
+	echo "rcS: no camtls user: /run/camtls and /run/camhttpd stay root's (no HTTPS)" >&2
+fi
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+mdev -s
+
+sysctl -p /etc/sysctl.conf >/dev/null
+hostname -F /etc/hostname
+syslogd -C64                                          # 64 KiB RAM ring buffer: logread
+klogd
+
+# Kernel modules, same order and parameters as stock /opt/ch/loadko.
+M=/config/modules/5.10
+echo 4 > /proc/sys/kernel/printk
+insmod $M/sstar_mi.ko common_init.g_ModParamPath=/config/modparam.json
+[ -f $M/mi_debug.ko ] && insmod $M/mi_debug.ko
+echo 0 up /config/iqfile/fc105G1.00_SWLUT.txt /config/iqfile/fc105G1.00_SWLUT.txt \
+	> /proc/mi_modules/mi_scl/debug_hal/hvsp
+insmod $M/cus_sc4336p_mipi_20251225.ko chmap=5
+mdev -s
+# /dev/irled (the IR-cut filter): the kernel's IRLED driver registers a bare character major with
+# no sysfs device, so neither mdev nor devtmpfs makes its node; stock's programs made it. Without
+# it rtspd can't move the IR-cut: night mode goes B/W with the IR LEDs on, but the filter stays in
+# and blocks their light (cam #2, 2026-10-24). Root only: rtspd opens it before leaving root.
+IRM=$(awk '$2 == "IRLED" { print $1; exit }' /proc/devices)
+if [ -n "$IRM" ]; then
+	rm -f /dev/irled && mknod -m 600 /dev/irled c "$IRM" 0
+else
+	logger -t rcS "no IRLED driver in /proc/devices: no IR-cut control"
+fi
+# Gate 3: /run/cam, the IR LED PWM and the amplifier GPIO for rtspd's own user (rtspd -U), before
+# cam-config writes the Digest file into /run/cam
+/etc/init.d/rtspd-prep || logger -t rcS "rtspd-prep failed: rtspd can only run as root"
+# RTSPS (docs/PLAN-TLS.md D): /run/rtspd holds rtspd's socket for camtls (rtspd-run's -t; rtspd
+# makes it as root, 0660 group camtls). root:camtls 0750, the camtls user's primary group, so only
+# camtls (and root) can reach it; without a camtls user, root only (rtspd-run then passes no -t).
+mkdir -p /run/rtspd
+TLS_GID=$(awk -F: '$1 == "camtls" && $3 > 0 && $4 > 0 { print $4; exit }' /etc/passwd)
+if [ -z "$TLS_GID" ] || ! chown "0:$TLS_GID" /run/rtspd || ! chmod 750 /run/rtspd; then
+	chown 0:0 /run/rtspd
+	chmod 700 /run/rtspd
+fi
+
+# Persistent config on DATA (mtd3, jffs2): ours in /mnt/nand/cam; cam-config makes DATA root-only (#72).
+# Lock mode (#174, docs/PLAN-DATA-LOCK.md Part 2): if DATA doesn't mount, or data-check finds a
+# claimed camera's users file lost, /run/data-failed says why and /mnt/nand is an empty tmpfs (DATA
+# stays unmounted, so a signed recovery can erase it). camhttpd then serves only the lock page,
+# claim and backup import are refused, sshd-run takes the image's update keys, and the rest waits
+# as on an unclaimed camera. A fresh or erased DATA mounts empty and stays claimable.
+if mount -t jffs2 -o nosuid,nodev,noexec /dev/mtdblock3 /mnt/nand; then
+	/etc/init.d/data-check || umount /mnt/nand || logger -t rcS "can't unmount DATA: the tmpfs goes over it"
+else
+	echo "mount: DATA (mtd3) didn't mount as jffs2" > /run/data-failed
+fi
+if [ -e /run/data-failed ]; then
+	chmod 644 /run/data-failed
+	logger -t rcS "DATA failed ($(cat /run/data-failed)): camera locked; see the web UI or docs/PLAN-DATA-LOCK.md"
+	mount -t tmpfs -o mode=0700,size=256k,nosuid,nodev,noexec tmpfs /mnt/nand
+fi
+/etc/init.d/cam-config
+
+# Hardware watchdog: the vendor fed it from mainctrl; nothing vendor runs here.
+watchdog -T 30 -t 5 /dev/watchdog
+
+ifconfig lo 127.0.0.1 up
+# eth0 MAC: U-Boot keeps it in its env (ethaddr, mtd0 +0x3F000) but bootargs don't pass it to the
+# kernel; the vendor's mainctrl applied it with "ifconfig eth0 hw ether". Do the same (mtd0 is
+# only read, never written).
+MAC=$(dd if=/dev/mtd0 bs=4096 skip=63 count=1 2>/dev/null | tr '\0' '\n' | sed -n 's/^ethaddr=//p')
+if echo "$MAC" | grep -qE '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$'; then
+	ifconfig eth0 hw ether "$MAC"
+else
+	logger -t rcS "no valid U-Boot ethaddr: eth0 keeps the driver's MAC"
+fi
+# eth0's own redirect and source checks, before it comes up (Gate 3): the kernel ORs "all" and the
+# interface for accept/secure/send_redirects on a host, and "default" (sysctl.conf) only reaches
+# interfaces made after it; eth0's driver is built in, so eth0 may predate sysctl -p.
+for k in accept_redirects=0 secure_redirects=0 send_redirects=0 accept_source_route=0 rp_filter=1; do
+	sysctl -w "net.ipv4.conf.eth0.$k" >/dev/null || logger -t rcS "sysctl net.ipv4.conf.eth0.$k failed"
+done
+# Address, route, DNS and hostname from cam.conf's net.* settings (#80): DHCP by default; a static
+# address only after its ARP checks, a changed one reverted unless confirmed (net-up says how).
+/etc/init.d/net-up || logger -t rcS "net-up failed"

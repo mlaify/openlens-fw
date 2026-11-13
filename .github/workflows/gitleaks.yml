@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: MIT
+# Secret scan on every push and PR: gitleaks over the tree and the full history (.gitleaks.toml),
+# plus the vendor-blob checks (hashes match SHA256SUMS; the BOOT image's MAC is scrubbed).
+name: gitleaks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks (tree)
+        run: >
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/repo -w /repo ghcr.io/gitleaks/gitleaks:v8.30.1
+          dir --no-banner --redact --config .gitleaks.toml .
+      - name: gitleaks (history)
+        run: >
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/repo -w /repo ghcr.io/gitleaks/gitleaks:v8.30.1
+          git --no-banner --redact --config .gitleaks.toml .
+      - name: vendor blobs match SHA256SUMS
+        run: cd vendor-blobs && sha256sum -c --strict SHA256SUMS
+      - name: BOOT image MAC is scrubbed
+        run: python3 -I scripts/scrub-uboot-env.py --check vendor-blobs/boot/mtd0-BOOT.bin

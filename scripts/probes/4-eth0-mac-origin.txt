@@ -1,0 +1,8 @@
+# read-only: where eth0's MAC comes from (#31). MAC values are redacted ON THE CAMERA; the output
+# only says match/differ. mtd0 is only read (dd), never written.
+E=`dd if=/dev/mtd0 bs=4096 skip=63 count=1 2>/dev/null | tr '\0' '\n' | sed -n 's/^ethaddr=//p' | tr A-F a-f`; A=`cat /sys/class/net/eth0/address`; [ -n "$E" ] && echo "uboot ethaddr: present" || echo "uboot ethaddr: MISSING"; [ "$E" = "$A" ] && echo "eth0 == uboot ethaddr" || echo "eth0 != uboot ethaddr"
+cat /sys/class/net/eth0/addr_assign_type; echo "(addr_assign_type: 0 permanent/driver, 1 random, 3 set from userspace)"
+ls -la /data/mac /mnt/nand/mac /opt/ch/flag.modifymac 2>&1
+[ -f /data/mac ] && { M=`tr A-F a-f < /data/mac`; [ "$M" = "$A" ] && echo "/data/mac == eth0" || echo "/data/mac != eth0"; }
+dmesg | grep -iE 'emac|mac addr|ether|eth0' | sed -E 's/([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}/<MAC>/g' | head -20
+sed -E 's/([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}/<MAC>/g' /proc/cmdline

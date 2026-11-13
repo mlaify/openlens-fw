@@ -1,0 +1,52 @@
+#!/bin/sh
+# Started (and restarted) by init. Credentials: /run/cam/rtspd.htdigest, derived from the users
+# on DATA by cam-config at boot and by camcfg on every user change (#72). The image carries none
+# (#128): until the camera is claimed (an admin exists, camcfg claimed) there is no stream, so
+# wait here, checking every 5 s, instead of respawning; camhttpd's /setup writes the file.
+# own PATH: init gives one, but a shell (or the chroot test) may not include /usr/sbin
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+H=/run/cam/rtspd.htdigest
+# Bench (rootfs/README.md, Gate 3): while /run/rtspd.hold exists, rtspd isn't started, so a test
+# build can run by hand; remove the file and the next start is the image's rtspd again.
+if [ -e /run/rtspd.hold ]; then
+	logger -t rtspd "/run/rtspd.hold: not starting rtspd until it is removed"
+	while [ -e /run/rtspd.hold ]; do sleep 2; done
+fi
+said=
+until camcfg claimed 2>/dev/null && [ -s "$H" ]; do
+	[ -n "$said" ] || logger -t rtspd "not claimed yet, or no $H: not starting (claim at http://<camera>/setup)"
+	said=1
+	sleep 5
+done
+Q=
+[ -s /etc/cam/iq-profile.bin ] && Q="-Q /etc/cam/iq-profile.bin"
+# stock night tuning (image.night_tuning, off by default): files derived at build time
+[ -s /etc/cam/iq-night.bin ] && [ -s /etc/cam/iq-day-switch.bin ] && Q="$Q -q /etc/cam/iq-night.bin,/etc/cam/iq-day-switch.bin"
+# Image settings (#73): image.* keys in the DATA config; camcfg changes them live over
+# /run/camd.sock and they're reapplied from here on every start.
+S=
+[ -f /mnt/nand/cam/cam.conf ] && S="-i /mnt/nand/cam/cam.conf"
+ARGS=$(grep -v '^[[:space:]]*#' /etc/cam/rtspd.args 2>/dev/null)
+# Bench aid for a staged OSD test: /etc/cam/osd-targets (e.g. "sub") limits the OSD to those
+# encoders (src/README.md, OSD_TARGETS). Only [a-z,] is taken.
+T=$(tr -cd 'a-z,' < /etc/cam/osd-targets 2>/dev/null)
+[ -n "$T" ] && export OSD_TARGETS="$T"
+# Gate 3: with /etc/cam/rtspd.user in the image (one line, "rtspd"), rtspd leaves root for that
+# user once its port, socket, settings and devices are open (-U; rtspd-prep readied the rest at
+# boot). Off until the bench test in rootfs/README.md passes: the vendor MI driver might check a
+# capability on some call. -G camctl: the control socket is 0660 rtspd:camctl, for camhttpd's
+# worker once it isn't root; root's clients (camcfg) connect either way.
+U=$(tr -cd 'A-Za-z0-9_:' < /etc/cam/rtspd.user 2>/dev/null)
+[ -n "$U" ] && U="-U $U"
+# RTSPS (docs/PLAN-TLS.md D): with /etc/cam/tls.on (image) or /run/tls.on (bench) and a camtls
+# user, rtspd also takes camtls's connections (TLS on port 322) on /run/rtspd/tls.sock (rcS makes
+# the directory root:camtls 0750; the socket is 0660, group camtls, camtls's uid only). If rtspd
+# can't make it, it logs that and streams on 554 as before.
+TLS=
+if { [ -e /etc/cam/tls.on ] || [ -e /run/tls.on ]; } && grep -q '^camtls:' /etc/passwd; then
+	TLS="-t /run/rtspd/tls.sock:camtls"
+fi
+# shellcheck disable=SC2086
+/usr/sbin/rtspd -a "$H" -G camctl $U $TLS $Q $S $ARGS 2>&1 | logger -t rtspd
+sleep 2

@@ -1,0 +1,37 @@
+#!/bin/sh
+# cam-config: prepare the persistent config (#72). rcS runs it after mounting DATA at /mnt/nand
+# (the chroot test runs it on a tmpfs instead). Our files live in /mnt/nand/cam. DATA's top is
+# root-only: the stock firmware's leftovers there were world-writable (Gate 3; the owner removed
+# them from both cameras 2026-10-24), and nothing but root needs to reach DATA.
+# own PATH: init gives one, but a shell (or the chroot test) may not include /usr/sbin
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+D=/mnt/nand/cam
+chmod 700 /mnt/nand
+mkdir -p "$D" && chmod 700 "$D"
+# A release image carries no account, key or password (#128): the owner claims the camera at
+# http://<camera>/setup in the first 30 minutes after power-on (docs/CLAIM.md). Only a bench image
+# (build-rootfs.sh --bench, marked /etc/cam/bench; never flashed) seeds the builder's accounts and
+# keys, for the RAM chroot test.
+if [ -f /etc/cam/bench ] && [ ! -s "$D/users" ] && [ -s /etc/cam/users.seed ]; then
+	cp /etc/cam/users.seed "$D/users.tmp" && chmod 600 "$D/users.tmp" && mv "$D/users.tmp" "$D/users"
+	logger -t cam-config "bench image: users seeded from the image"
+fi
+# SSH (#76): /root/.ssh links here; the host key is made by sshd-run
+mkdir -p "$D/ssh" && chmod 700 "$D/ssh"
+if [ -f /etc/cam/bench ] && [ ! -s "$D/ssh/authorized_keys" ] && [ -s /etc/cam/authorized_keys.seed ]; then
+	cp /etc/cam/authorized_keys.seed "$D/ssh/authorized_keys.tmp" &&
+		chmod 600 "$D/ssh/authorized_keys.tmp" &&
+		mv "$D/ssh/authorized_keys.tmp" "$D/ssh/authorized_keys"
+	logger -t cam-config "bench image: SSH keys seeded from the image"
+fi
+if [ -e /run/data-failed ]; then
+	logger -t cam-config "locked: DATA failed; recover from the web UI's lock page (docs/PLAN-DATA-LOCK.md)"
+else
+	camcfg claimed 2>/dev/null ||
+		logger -t cam-config "not claimed yet: open http://<camera>/setup within 30 minutes of power-on"
+fi
+# rtspd's Digest file (hashes only) is derived from the users at every boot. /run/cam comes from
+# rtspd-prep (rtspd:camctl 2750; camcfg gives the file to rtspd, 0600); without it, root only.
+[ -d /run/cam ] || { mkdir -p /run/cam && chmod 700 /run/cam; }
+camcfg htdigest camera /run/cam/rtspd.htdigest || rm -f /run/cam/rtspd.htdigest

@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT
+# gitleaks configuration: the default rules, plus allowlists for known placeholders. Keep every
+# entry narrow (one literal pattern or one file) and say why. CI runs `gitleaks dir` and
+# `gitleaks git` with this file (.github/workflows/gitleaks.yml).
+title = "openlens-fw"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Doc placeholders in curl examples: -u USER:PASS / -u admin:PASSWORD are never real credentials"
+regexTarget = "match"
+regexes = ['''-u (USER:PASS|admin:PASSWORD)\b''']
+
+[[allowlists]]
+description = "Synthetic ed25519 public key (bytes 01..20) in the credential scanner's own test"
+regexTarget = "match"
+regexes = ['''AAAAC3NzaC1lZDI1NTE5AAAAIAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g''']
+paths = ['''^scripts/test-scan-credentials\.sh$''']
+condition = "AND"

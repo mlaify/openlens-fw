@@ -1,0 +1,68 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Started (and restarted) by init: camtls, HTTPS on 443 for the web UI (docs/PLAN-TLS.md §B). It
+# ends TLS and passes plain HTTP to camhttpd (443) and RTSP to rtspd (322) over their UNIX sockets,
+# as user camtls (-U).
+# On since the bench test in rootfs/README.md passed (2026-10-25): it runs with /etc/cam/tls.on
+# (in the image) or /run/tls.on (bench: touch it; a reboot forgets it). Without either it waits
+# here, checking every 10 s. It doesn't wait for the claim: once camtls is ready, /setup is
+# HTTPS-only (until then camhttpd serves /setup on plain HTTP, the claim fallback).
+# Each start: the camera's CA and server certificate on DATA (camcfg tls init: first start only),
+# renewed (camcfg tls renew, the key kept) when camtls check says so: eth0's address isn't the
+# certificate's, or it ends within 30 days. Then the public files (/run/camtls/ca.crt, info), then
+# camtls. camtls exits (3) when the address changes or the end nears, and the next start renews.
+# own PATH: init gives one, but a shell may not include /usr/sbin
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+D=/mnt/nand/cam/tls
+P=/run/camtls
+said=
+until [ -e /etc/cam/tls.on ] || [ -e /run/tls.on ]; do
+	[ -n "$said" ] || logger -t camtls "no /etc/cam/tls.on or /run/tls.on: not starting (web UI on plain HTTP)"
+	said=1
+	sleep 10
+done
+rm -f "$P/ready"
+said=
+until IP=$(ifconfig eth0 2>/dev/null | sed -n 's/.*inet addr:\([0-9.]*\).*/\1/p') && [ -n "$IP" ]; do
+	[ -n "$said" ] || logger -t camtls "eth0 has no IPv4 address yet: waiting"
+	said=1
+	sleep 5
+done
+if ! out=$(camcfg tls init "$IP" 2>&1); then
+	logger -t camtls "camcfg tls init failed: $out"
+	sleep 60
+	exit 1
+fi
+[ "$out" = exists ] || logger -t camtls "first start: $out"
+line=$(camtls check "$D" "$IP" 2>&1)
+case $line in
+renew*)
+	logger -t camtls "certificate: $line: renewing"
+	if ! out=$(camcfg tls renew "$IP" 2>&1); then
+		logger -t camtls "camcfg tls renew failed: $out"
+		sleep 60
+		exit 1
+	fi
+	line=$(camtls check "$D" "$IP" 2>&1) ;;
+esac
+case $line in
+"ok "*) logger -t camtls "certificate: $line" ;;
+*)
+	logger -t camtls "certificate check: ${line:-no answer}: not starting"
+	sleep 60
+	exit 1 ;;
+esac
+# Public (0644): the CA certificate to download and trust, and the check line. Written in /run
+# (root's) and renamed in, so nothing planted in camtls's directory makes root write through a link.
+T=/run/.camtls-pub
+{ cp "$D/ca.crt" "$T.crt" && chmod 644 "$T.crt" && mv -f "$T.crt" "$P/ca.crt" &&
+	echo "$line" > "$T.info" && chmod 644 "$T.info" && mv -f "$T.info" "$P/info"; } ||
+	logger -t camtls "can't publish $P/ca.crt and $P/info"
+# camtls reads the key and certificate as root, binds 443 (HTTPS: camhttpd) and 322 (RTSPS:
+# rtspd), then runs as camtls; it makes $P/ready once both listen, and camhttpd then sends
+# browsers on port 80 to https:// and offers rtsps:// stream URIs.
+/usr/sbin/camtls -k "$D/server.key" -c "$D/server.crt" -U camtls \
+	-L 443:/run/camhttpd/tls.sock -L 322:/run/rtspd/tls.sock -r "$P/ready" 2>&1 | logger -t camtls
+rm -f "$P/ready"
+sleep 2

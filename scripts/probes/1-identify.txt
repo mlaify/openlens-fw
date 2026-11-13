@@ -1,0 +1,22 @@
+# read-only identification probe
+uname -a
+cat /proc/version
+cat /proc/cpuinfo
+cat /proc/device-tree/compatible | tr '\0' ' '; echo
+cat /proc/device-tree/model; echo
+cat /proc/cmdline
+cat /proc/meminfo | head -5
+cat /proc/interrupts
+cat /proc/iomem
+cat /proc/mtd
+ls -la /proc/config.gz 2>&1
+cat /proc/modules
+ls /sys/bus/platform/drivers
+ls /sys/devices/soc0 2>&1; cat /sys/devices/soc0/* 2>/dev/null
+find /sys -maxdepth 4 -iname '*chip*' 2>/dev/null | head -20
+ls /sys/class 2>&1
+dmesg | head -120
+dmesg | grep -iE 'gic|cpu|psci|smp|arch_timer|clocksource|ifado|i6c|chip|soc|revision|ipl|uboot|sstar|mstar' | head -80
+ls -la /dev/mem 2>&1; busybox 2>&1 | tail -15
+ls /lib | head -40
+ls /config 2>&1 | head -30

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Started (and restarted) by init (#78): SNTP client. Servers: cam.conf time.ntp (default
+# time.cloudflare.com; Surveillance Station can set its own over ONVIF SetNTP). No listener.
+# Gate 3: ntpc runs as user ntpc with CAP_SYS_TIME only (-U). It can't read DATA (root only), so
+# it reads a world-readable copy of the time.ntp line, made here at every start (no line: the
+# default) and kept in step by camcfg when time.ntp changes; its marker goes in /run/ntpc, its own.
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+M=/run/ntp.conf
+grep '^time\.ntp=' /mnt/nand/cam/cam.conf 2>/dev/null | tail -n 1 > "$M.tmp" && chmod 644 "$M.tmp" &&
+	mv "$M.tmp" "$M" || logger -t ntpc "can't write $M"
+N=$(awk -F: '$1 == "ntpc" { print $3; exit }' /etc/passwd)
+mkdir -p /run/ntpc && chown "$N" /run/ntpc && chmod 700 /run/ntpc || logger -t ntpc "/run/ntpc not ntpc's"
+/usr/sbin/ntpc -c "$M" -U ntpc 2>&1 | logger -t ntpc
+sleep 5

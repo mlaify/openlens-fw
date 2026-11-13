@@ -1,0 +1,22 @@
+#!/bin/sh
+# Started (and restarted) by init (#74, #75): ONVIF (Device + Media, WS-UsernameToken or HTTP
+# Digest from the users on DATA), /snapshot.jpg (from rtspd over /run/camd.sock) and WS-Discovery.
+# Listens on 80/tcp and 3702/udp. Extra options: /etc/cam/camhttpd.args (see src/camhttpd).
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+ARGS=$(grep -v '^[[:space:]]*#' /etc/cam/camhttpd.args 2>/dev/null)
+# Gate 3 (docs/CAMHTTPD-PRIVSEP.md): with /etc/cam/camhttpd.user in the image (one line,
+# "camhttpd"), camhttpd splits once its sockets are open: a root monitor keeps the passwords and
+# the privileged operations, and a worker running as that user parses the network (-Z). Off until
+# the bench test in rootfs/README.md passes; without the file camhttpd runs as root, as before.
+U=$(tr -cd 'A-Za-z0-9_:' < /etc/cam/camhttpd.user 2>/dev/null)
+[ -n "$U" ] && U="-Z $U"
+# HTTPS (docs/PLAN-TLS.md B): with /etc/cam/tls.on in the image, or /run/tls.on for a bench test,
+# camhttpd also takes camtls's connections on a UNIX socket (only user camtls may connect), and
+# port 80 sends the web UI to https:// while camtls's /run/camtls/ready exists. If the camtls user
+# or /run/camhttpd is missing, camhttpd logs it and serves port 80 as before (src/camhttpd).
+T=
+if [ -e /etc/cam/tls.on ] || [ -e /run/tls.on ]; then T="-t /run/camhttpd/tls.sock:camtls"; fi
+# shellcheck disable=SC2086
+/usr/sbin/camhttpd $U $T $ARGS 2>&1 | logger -t camhttpd
+sleep 2
