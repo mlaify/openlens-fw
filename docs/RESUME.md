@@ -441,7 +441,7 @@ The root console closes at that reboot, so `open` it again before every run.
 | `docs/` | this file, ROADMAP, BOARD, IFADO-*, STOCK-*, PLAN, PLAN-TLS, PLAN-DATA-LOCK, GATE3-CRITERIA |
 | `vendor-blobs/`, `scripts/scrub-uboot-env.py` | the stock binaries (tracked since 2026-11-12, licenses in `vendor-blobs/README.md`); the MAC scrubber for a BOOT image |
 | `wiki/`, `scripts/publish-wiki.sh` | the GitHub wiki's pages, which only point to the user docs at docs.mlaify.io/openlens-fw (source: `mlaify/docs`, `content/openlens-fw/`, since 2026-11-13); the owner publishes them with the script |
-| `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/` | how to report vulnerabilities privately (GitHub or security@mlaify.io); how to contribute; the code of conduct; the issue templates |
+| `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/` | how to report vulnerabilities privately through GitHub; how to contribute; the code of conduct; the issue templates |
 
 ## 10. Environment and git workflow
 - **Mac:** Apple Silicon.

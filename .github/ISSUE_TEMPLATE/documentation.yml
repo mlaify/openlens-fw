@@ -1,0 +1,27 @@
+name: Documentation problem
+description: Report missing, inaccurate, or confusing openlens-fw documentation.
+title: "[Docs]: "
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Page or file
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or unclear?
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested correction
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: This public report contains no camera identifiers, credentials, private recordings, or confidential vulnerability details.
+          required: true
