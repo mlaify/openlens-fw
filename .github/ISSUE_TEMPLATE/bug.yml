@@ -1,5 +1,6 @@
 name: Firmware bug
 description: Report reproducible incorrect behavior in openlens-fw.
+labels: ["bug"]
 title: "[Bug]: "
 body:
   - type: markdown
