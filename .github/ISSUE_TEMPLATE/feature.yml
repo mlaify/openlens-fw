@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a concrete firmware or documentation improvement.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Security and operational impact
+      description: Explain any effect on authentication, network exposure, privileges, updates, storage, or camera compatibility.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing open and closed issues for this request.
+          required: true

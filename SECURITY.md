@@ -11,13 +11,17 @@ us.
 
 ## Official Channels
 
-Please **don't open a public issue** for a security problem. Report it privately, either way:
+Please **don't open a public issue** for a security problem. Report it privately through GitHub:
 
 - **GitHub:** the repository's **Security** tab, then **Report a vulnerability**
   ([direct link](https://github.com/mlaify/openlens-fw/security/advisories/new)).
-- **Email:** [security@mlaify.io](mailto:security@mlaify.io). To encrypt your report, use the
-  [security@mlaify.io PGP key](https://mlaify.io/publickey.security.mlaify.io-38642d275f820a026f3bfc5e7e44d7d05bafd4df.asc)
-  (fingerprint `3864 2D27 5F82 0A02 6F3B FC5E 7E44 D7D0 5BAF D4DF`).
+
+Use a public issue instead for ordinary firmware bugs, compatibility problems, feature requests,
+and documentation corrections. Automated scanner output without validation and a demonstrated
+openlens-fw impact is not sufficient by itself.
+
+This is a coordinated vulnerability disclosure program, not a bug bounty. We do not offer or
+promise payment, rewards, or swag for reports.
 
 Include:
 - the firmware version (the web UI's System page, or `cat /etc/cam/version` over SSH), or the

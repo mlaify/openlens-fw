@@ -1,0 +1,80 @@
+name: Firmware bug
+description: Report reproducible incorrect behavior in openlens-fw.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is public. Report a vulnerability privately from the repository's Security tab.
+
+        Remove MAC addresses, serial numbers, passwords, recovery codes, private video or audio, and RTSP URLs containing credentials before posting.
+  - type: input
+    id: version
+    attributes:
+      label: Firmware version
+      description: Provide the version shown on the System page or by `cat /etc/cam/version`.
+    validations:
+      required: true
+  - type: input
+    id: camera
+    attributes:
+      label: Camera
+      description: Give the model and a non-sensitive identifier if you own more than one.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Video or RTSP
+        - ONVIF or NVR
+        - Web UI
+        - HTTPS or certificates
+        - Day or night mode
+        - Firmware update
+        - SSH
+        - Claim or recovery
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: NVR, client, or browser
+      description: Include the product and version if relevant.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized log excerpt
+      description: Remove all identifiers, credentials, recovery material, and private content.
+      render: shell
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing open and closed issues.
+          required: true
+        - label: I removed MAC addresses, serial numbers, credentials, recovery codes, private recordings, and other sensitive information.
+          required: true
+        - label: This is an ordinary firmware bug, not a confidential vulnerability report.
+          required: true
